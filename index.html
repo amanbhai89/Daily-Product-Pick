@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Product Pick</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#171923;
+    --paper:#F7F5F1;
+    --card:#FFFFFF;
+    --line:#E7E3DB;
+    --accent:#E85D2C;   /* amber-coral for CTAs */
+    --accent-dark:#C4491E;
+    --navy:#12213B;     /* deep navy for header/trust */
+    --muted:#6B7280;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter',sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Sora',sans-serif; margin:0;}
+
+  /* Header */
+  header{
+    background:var(--navy);
+    color:#fff;
+    padding:28px 20px 34px;
+    position:relative;
+  }
+  .brand-row{display:flex; align-items:center; gap:10px;}
+  .brand-mark{
+    width:36px;height:36px;border-radius:10px;
+    background:var(--accent);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Sora',sans-serif;font-weight:800;font-size:16px;
+    flex-shrink:0;
+  }
+  header h1{font-size:22px; letter-spacing:-0.02em;}
+  header .tag{font-size:13px; color:#AEB8CC; margin-top:2px;}
+  .social-row{
+    margin-top:18px; display:flex; gap:10px; flex-wrap:wrap;
+  }
+  .social-row a{
+    font-size:13px; font-weight:600; color:#fff;
+    background:rgba(255,255,255,0.10);
+    padding:7px 13px; border-radius:20px; text-decoration:none;
+    border:1px solid rgba(255,255,255,0.14);
+  }
+  .social-row a:active{background:rgba(255,255,255,0.2);}
+
+  /* Section label */
+  .section-label{
+    max-width:960px; margin:22px auto 4px; padding:0 16px;
+    display:flex; align-items:baseline; justify-content:space-between;
+  }
+  .section-label span.eyebrow{
+    font-size:12px; font-weight:700; letter-spacing:0.08em;
+    color:var(--accent-dark); text-transform:uppercase;
+  }
+  .section-label span.count{font-size:12px; color:var(--muted);}
+
+  /* Grid */
+  #product-list{
+    max-width:960px; margin:0 auto; padding:12px 16px 60px;
+    display:grid; grid-template-columns:1fr; gap:16px;
+  }
+  @media(min-width:640px){
+    #product-list{grid-template-columns:1fr 1fr;}
+  }
+  @media(min-width:960px){
+    #product-list{grid-template-columns:1fr 1fr 1fr;}
+  }
+
+  .product-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    display:flex; flex-direction:column;
+    cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .product-card:active{transform:scale(0.98);}
+  .thumb-wrap{
+    position:relative; width:100%; aspect-ratio:1/1; background:#EFEBE3;
+    overflow:hidden;
+  }
+  .thumb-wrap img{width:100%; height:100%; object-fit:cover; display:block;}
+  .pick-badge{
+    position:absolute; top:10px; left:10px;
+    background:var(--navy); color:#fff;
+    font-family:'Sora',sans-serif; font-weight:700; font-size:11px;
+    padding:4px 9px; border-radius:20px; letter-spacing:.03em;
+  }
+  .card-body{padding:14px 14px 16px; display:flex; flex-direction:column; gap:10px; flex:1;}
+  .card-body h3{
+    font-size:15px; font-weight:600; font-family:'Inter',sans-serif;
+    line-height:1.35; color:var(--ink);
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .btn-buy{
+    margin-top:auto;
+    display:block; text-align:center;
+    background:var(--accent); color:#fff; text-decoration:none;
+    font-weight:700; font-size:14px;
+    padding:11px; border-radius:10px;
+    border:none; width:100%; cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .btn-buy:active{background:var(--accent-dark);}
+
+  /* Empty / loading states */
+  .state-msg{
+    grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--muted);
+  }
+  .state-msg h3{font-family:'Sora',sans-serif; color:var(--ink); font-size:17px; margin-bottom:6px;}
+
+  /* Detail overlay */
+  #detail-view{
+    display:none; position:fixed; inset:0; background:var(--paper);
+    z-index:50; overflow-y:auto;
+  }
+  #detail-view.open{display:block;}
+  .detail-top{
+    display:flex; align-items:center; gap:12px;
+    padding:16px; background:var(--navy);
+  }
+  .back-btn{
+    background:rgba(255,255,255,0.12); border:none; color:#fff;
+    width:36px; height:36px; border-radius:10px; font-size:18px;
+    cursor:pointer; flex-shrink:0;
+  }
+  .detail-top span{color:#fff; font-weight:600; font-size:14px;}
+  .detail-body{max-width:640px; margin:0 auto; padding:20px 16px 40px;}
+  .detail-img-wrap{
+    width:100%; aspect-ratio:1/1; border-radius:18px; overflow:hidden;
+    background:#EFEBE3; border:1px solid var(--line);
+  }
+  .detail-img-wrap img{width:100%; height:100%; object-fit:cover;}
+  .detail-body h2{font-size:21px; margin-top:20px; line-height:1.35;}
+  .detail-body .btn-buy{margin-top:22px; padding:15px; font-size:15px; border-radius:12px;}
+
+  footer{
+    text-align:center; padding:26px 20px 34px; color:var(--muted); font-size:13px;
+    border-top:1px solid var(--line);
+  }
+  footer strong{color:var(--ink);}
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-row">
+      <div class="brand-mark">DP</div>
+      <div>
+        <h1>Daily Product Pick</h1>
+        <div class="tag">Created by Aman Bhai — new picks every day</div>
+      </div>
+    </div>
+    <div class="social-row">
+      <a href="#" id="link-wa">WhatsApp Group</a>
+      <a href="#" id="link-ig">Instagram</a>
+      <a href="#" id="link-fb">Facebook</a>
+    </div>
+  </header>
+
+  <div class="section-label">
+    <span class="eyebrow">Today's Picks</span>
+    <span class="count" id="item-count"></span>
+  </div>
+
+  <div id="product-list">
+    <div class="state-msg" id="loading-msg">
+      <h3>Loading picks…</h3>
+      <p>Fetching the latest products for you.</p>
+    </div>
+  </div>
+
+  <footer>
+    Want a website like this for your own picks? Contact <strong>Aman Bhai</strong> — [+91 8967295143]
+  </footer>
+
+  <!-- Detail overlay -->
+  <div id="detail-view">
+    <div class="detail-top">
+      <button class="back-btn" onclick="closeDetail()">←</button>
+      <span>Product Details</span>
+    </div>
+    <div class="detail-body">
+      <div class="detail-img-wrap"><img id="detail-img" src="" alt=""></div>
+      <h2 id="detail-name"></h2>
+      <a href="#" id="detail-buy" target="_blank" class="btn-buy">Buy Now →</a>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    // ---- Apna Firebase config yahan daalein ----
+    const firebaseConfig = {
+  apiKey: "AIzaSyDPbz4HUN89eAz3s-4Ky0mi4jVcTiZlTEY",
+  authDomain: "daily-product-pick.firebaseapp.com",
+  databaseURL: "https://daily-product-pick-default-rtdb.firebaseio.com",
+  projectId: "daily-product-pick",
+  storageBucket: "daily-product-pick.firebasestorage.app",
+  messagingSenderId: "241336985784",
+  appId: "1:241336985784:web:9ac049481df44bf191ac4d",
+  measurementId: "G-GT9G6PMCFF"
+};
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // ---- Apne social links yahan daalein ----
+    document.getElementById('link-wa').href = "https://chat.whatsapp.com/HHCcmLialuAJAKrHjGWU6d?s=cl&p=a&mlu=4";
+    document.getElementById('link-ig').href = "https://www.instagram.com/daily.product.pick?igsh=NW82d2pjaWx0MXhu";
+    document.getElementById('link-fb').href = "https://www.facebook.com/share/1Ei9aW8Meb/";
+
+    const listEl = document.getElementById('product-list');
+    const countEl = document.getElementById('item-count');
+
+    function escapeHtml(str){
+      const d = document.createElement('div');
+      d.innerText = str || "";
+      return d.innerHTML;
+    }
+
+    db.ref('products').orderByKey().on('value', (snapshot) => {
+      const items = [];
+      snapshot.forEach(child => items.unshift({ id: child.key, ...child.val() })); // newest first
+
+      if (items.length === 0){
+        listEl.innerHTML = `<div class="state-msg"><h3>No picks posted yet</h3><p>Check back soon — today's picks are coming.</p></div>`;
+        countEl.textContent = "";
+        return;
+      }
+
+      countEl.textContent = items.length + " products";
+      listEl.innerHTML = items.map((item, idx) => `
+        <div class="product-card" onclick="openDetail('${item.id}')">
+          <div class="thumb-wrap">
+            <span class="pick-badge">PICK ${String(items.length - idx).padStart(2,'0')}</span>
+            <img src="${item.image}" alt="${escapeHtml(item.name)}" loading="lazy">
+          </div>
+          <div class="card-body">
+            <h3>${escapeHtml(item.name)}</h3>
+            <button class="btn-buy" onclick="event.stopPropagation(); window.open('${item.link}','_blank')">Buy Now →</button>
+          </div>
+        </div>
+      `).join('');
+
+      window._items = {};
+      items.forEach(i => window._items[i.id] = i);
+    });
+
+    function openDetail(id){
+      const item = window._items[id];
+      if(!item) return;
+      document.getElementById('detail-img').src = item.image;
+      document.getElementById('detail-img').alt = item.name;
+      document.getElementById('detail-name').textContent = item.name;
+      document.getElementById('detail-buy').href = item.link;
+      document.getElementById('detail-view').classList.add('open');
+      window.scrollTo(0,0);
+    }
+    function closeDetail(){
+      document.getElementById('detail-view').classList.remove('open');
+    }
+  </script>
+</body>
+</html>
