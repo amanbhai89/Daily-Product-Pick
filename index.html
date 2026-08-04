@@ -233,9 +233,12 @@
       return d.innerHTML;
     }
 
-    db.ref('products').orderByKey().on('value', (snapshot) => {
+    db.ref('products').on('value', (snapshot) => {
       const items = [];
-      snapshot.forEach(child => items.unshift({ id: child.key, ...child.val() })); // newest first
+      snapshot.forEach(child => {
+        items.push({ id: child.key, ...child.val() });
+      });
+      items.reverse(); // Naye products sabse upar dikhane ke liye
 
       if (items.length === 0){
         listEl.innerHTML = `<div class="state-msg"><h3>No picks posted yet</h3><p>Check back soon — today's picks are coming.</p></div>`;
